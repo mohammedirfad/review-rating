@@ -9,9 +9,25 @@ import { companyRouter } from "./routes/company.routes.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
 export const app = express();
+const allowedOrigins = new Set(
+  [env.CLIENT_URL, env.CLIENT_URLS]
+    .filter(Boolean)
+    .flatMap((value) => value!.split(","))
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 
 app.use(helmet());
-app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+  }
+}));
 app.use(express.json({ limit: "5mb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));

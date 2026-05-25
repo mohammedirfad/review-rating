@@ -21,7 +21,7 @@ export function getErrorMessage(error: unknown) {
       if (fieldMessages) return `${data.message ?? "Validation failed."} ${fieldMessages}`;
     }
     if (data?.message) return data.message;
-    if (error.code === "ERR_NETWORK") return "API server is not reachable. Please make sure backend is running on port 5000.";
+    if (error.code === "ERR_NETWORK") return "Could not reach the API. Please check your internet connection or try again in a moment.";
   }
   return "Something went wrong. Please try again.";
 }

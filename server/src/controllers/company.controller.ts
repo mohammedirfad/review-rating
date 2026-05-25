@@ -10,6 +10,27 @@ function sortFor(value: "name" | "rating" | "date"): Record<string, SortOrder> {
   return { name: 1 };
 }
 
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function searchAcrossFields(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((term) => {
+      const regex = { $regex: escapeRegex(term), $options: "i" };
+      return {
+        $or: [
+          { name: regex },
+          { location: regex },
+          { city: regex },
+          { description: regex }
+        ]
+      };
+    });
+}
+
 export const createCompany = asyncHandler(async (req, res) => {
   const body = companySchema.parse(req.body);
   const company = await Company.create({
@@ -24,17 +45,18 @@ export const createCompany = asyncHandler(async (req, res) => {
 
 export const listCompanies = asyncHandler(async (req, res) => {
   const query = companyQuerySchema.parse(req.query);
-  const filter: Record<string, unknown> = {};
+  const andFilters: Record<string, unknown>[] = [];
 
   if (query.search) {
-    filter.$or = [
-      { name: { $regex: query.search, $options: "i" } },
-      { location: { $regex: query.search, $options: "i" } },
-      { city: { $regex: query.search, $options: "i" } }
-    ];
+    andFilters.push(...searchAcrossFields(query.search));
   }
 
-  if (query.city) filter.city = { $regex: query.city, $options: "i" };
+  if (query.city) {
+    const regex = { $regex: escapeRegex(query.city), $options: "i" };
+    andFilters.push({ $or: [{ city: regex }, { location: regex }] });
+  }
+
+  const filter = andFilters.length ? { $and: andFilters } : {};
 
   const skip = (query.page - 1) * query.limit;
   const [companies, total] = await Promise.all([
