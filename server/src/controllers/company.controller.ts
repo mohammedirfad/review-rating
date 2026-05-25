@@ -56,8 +56,7 @@ export const listCompanies = asyncHandler(async (req, res) => {
   }
 
   if (query.city) {
-    const regex = { $regex: escapeRegex(query.city), $options: "i" };
-    andFilters.push({ $or: [{ city: regex }, { location: regex }] });
+    andFilters.push(searchAcrossFields(query.city));
   }
 
   const filter = andFilters.length ? { $and: andFilters } : {};
