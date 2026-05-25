@@ -15,20 +15,24 @@ function escapeRegex(value: string) {
 }
 
 function searchAcrossFields(value: string) {
-  return value
+  const terms = value
     .split(/\s+/)
     .filter(Boolean)
-    .map((term) => {
-      const regex = { $regex: escapeRegex(term), $options: "i" };
-      return {
-        $or: [
-          { name: regex },
-          { location: regex },
-          { city: regex },
-          { description: regex }
-        ]
-      };
-    });
+    .map(escapeRegex);
+
+  const patterns = [escapeRegex(value), ...terms];
+
+  return {
+    $or: patterns.flatMap((pattern) => {
+      const regex = { $regex: pattern, $options: "i" };
+      return [
+        { name: regex },
+        { location: regex },
+        { city: regex },
+        { description: regex }
+      ];
+    })
+  };
 }
 
 export const createCompany = asyncHandler(async (req, res) => {
@@ -48,7 +52,7 @@ export const listCompanies = asyncHandler(async (req, res) => {
   const andFilters: Record<string, unknown>[] = [];
 
   if (query.search) {
-    andFilters.push(...searchAcrossFields(query.search));
+    andFilters.push(searchAcrossFields(query.search));
   }
 
   if (query.city) {
