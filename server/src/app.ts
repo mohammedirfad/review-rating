@@ -10,22 +10,39 @@ import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
 export const app = express();
 const allowedOrigins = new Set(
-  [env.CLIENT_URL, env.CLIENT_URLS]
+  [
+    "http://localhost:5173",
+    "https://review-rating-client.vercel.app",
+    env.CLIENT_URL,
+    env.CLIENT_URLS
+  ]
     .filter(Boolean)
     .flatMap((value) => value!.split(","))
     .map((value) => value.trim())
     .filter(Boolean)
 );
 
+function isAllowedOrigin(origin?: string) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === "https:" && hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
 app.use(helmet());
 app.use(cors({
   credentials: true,
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
       return;
     }
-    callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+    callback(null, false);
   }
 }));
 app.use(express.json({ limit: "5mb" }));
