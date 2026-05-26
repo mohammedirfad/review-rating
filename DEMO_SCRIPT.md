@@ -6,7 +6,7 @@
 
 Hi, this is my Review & Rate project. It is a full-stack MERN application where users can discover companies, search by company name or location, view ratings and reviews, create an account, add companies, and submit reviews.
 
-The frontend is built with React, TypeScript, and Vite. The backend is built with Node.js, Express, TypeScript, MongoDB Atlas, and Mongoose. I deployed the backend on Render and the frontend on Vercel.
+The frontend is built with React, TypeScript, and Vite. The backend is built with Node.js, Express, TypeScript, MongoDB Atlas, and Mongoose. I deployed the backend on Render and the frontend on Vercel
 
 ### 0:25 - 1:05 | Home Page And Company Listing
 
